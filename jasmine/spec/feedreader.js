@@ -32,22 +32,30 @@ $(function() {
         });
 
 
-        /* TODO: Write a test that loops through each feed
+        /* The following test loops through each feed
          * in the allFeeds object and ensures it has a URL defined
          * and that the URL is not empty.
          */
         it('URLs defined', function() {
 
-            //ensure each entrie within the allFeeds array is not blank
-            //ensure that the entrie begains with 'http' to validate as a link
-            allFeeds.forEach((feed, index) => {
+            //Cool heads up on the regEx idea. Thanks Udacity and Diego Perini
+            var rx = /^(?:(?:https?|ftp):\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?$/i;
+
+            //Parse each feed with the regular expression to validate url
+            for (const feed of allFeeds) {
+
+                //define variable to hold the result of current urls test
+                var feedGood = rx.test(feed.url);
+
+                //expect each entrie within the allFeeds array is not blank
                 expect(feed.url).not.toBe('');
-                expect(feed.url.startsWith('http')).toBe(true);
-            });
+
+                //expect current url to be valid
+                expect(feedGood).toEqual(true);
+            }
         });
 
-
-        /* TODO: Write a test that loops through each feed
+        /* The following test loops through each feed
          * in the allFeeds object and ensures it has a name defined
          * and that the name is not empty.
          */
@@ -63,46 +71,33 @@ $(function() {
     });
 
 
-    /* TODO: Write a new test suite named "The menu" */
+    //The following tests focus on the menu icons functionality
     describe('The menu', function() {
 
-        /* TODO: Write a test that ensures the menu element is
-         * hidden by default. You'll have to analyze the HTML and
-         * the CSS to determine how we're performing the
-         * hiding/showing of the menu element.
-         */
+        // The following test ensures the menu element is hidden by default.
         it('default hidden menu', function() {
 
-            //ensure the menu is hidden by default
+            //expect the menu to be hidden initialy
             expect($('body').hasClass('menu-hidden')).toBe(true);
         });
 
-         /* TODO: Write a test that ensures the menu changes
-          * visibility when the menu icon is clicked. This test
-          * should have two expectations: does the menu display when
-          * clicked and does it hide when clicked again.
-          */
+        /* The followings test ensures the menu changes visibility when the menu
+         * icon is clicked, and hides when clicked again.
+         */
         it('menu changes visibility on clicks', function() {
 
             //Click on menu and expect it to be not hidden
-            $('body > div.header > a > i').click();
+            $('.menu-icon-link').click();
             expect($('body').hasClass('menu-hidden')).toBe(false);
 
             //Click on menu again and expect it to be hidden
-            $('body > div.header > a > i').click();
+            $('.menu-icon-link').click();
             expect($('body').hasClass('menu-hidden')).toBe(true);
         });
     });
 
-    /* TODO: Write a new test suite named "Initial Entries" */
+    //The following tests ensure the loadfeed function is getting valid entries
     describe('Initial Entries', function() {
-
-        /* TODO: Write a test that ensures when the loadFeed
-         * function is called and completes its work, there is at least
-         * a single .entry element within the .feed container.
-         * Remember, loadFeed() is asynchronous so this test will require
-         * the use of Jasmine's beforeEach and asynchronous done() function.
-         */
 
         //Wait for the loadFeed function to complete
         beforeEach(function(done) {
@@ -113,50 +108,36 @@ $(function() {
 
             //create a node list of all 'a' tags within the '.feed' container
             //then expect the node list to contain at least 1 entrie
-            var feedList = document.querySelectorAll('.feed a');
+            var feedList = document.querySelectorAll('.feed a.entry-link .entry');
             expect(feedList.length).toBeGreaterThan(0);
             done();
         });
     });
 
-    /* TODO: Write a new test suite named "New Feed Selection" */
+    //The following test ensures the looadFeed function work properly
     describe('New Feed Selection', function() {
 
-        /* TODO: Write a test that ensures when a new feed is loaded
-         * by the loadFeed function that the content actually changes.
-         * Remember, loadFeed() is asynchronous.
-         */
-        var originalTimeout;
+        //define variable for the old and new feeds
         var oldFeed;
         var newFeed;
 
-        beforeEach(function() {
-            originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-            jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+        //load first feed and set oldfeed variable
+        beforeEach(function(done) {
+            loadFeed(0);
+            oldFeed = document.querySelector('.feed > a');
+            done();
         });
 
-        it('clicks on menu and clicks 2nd feed', function(done) {
-
-            //get first 'a' tag from the '.feed' container
-            setTimeout(function(){oldFeed = document.querySelector('.feed > a');
-            },800);
-
-            //Click on menu and click 2nd 'a' tag
-            setTimeout(function(){$('body > div.header > a > i').click();},1000);
-            setTimeout(function(){$('body > div.slide-menu > ul > li:nth-child(2) > a').click();},1100);
-
-            //get first 'a' tag from the '.feed' container after load
-            setTimeout(function(){
-                newFeed = document.querySelector('.feed > a');
-
-                //expect oldFeed and newFeed to not be identical
-                expect(oldFeed.href).not.toBe(newFeed.href);
-                done();},1500);
+        //load 2nd feed
+        beforeEach(function(done) {
+            loadFeed(1, done);
         });
 
-        afterEach(function() {
-            jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+        //sets newfeed to the first link and compares oldfeed is not equal to newfeed
+        it('gets newFeed and ensures its not the same as oldfeed', function(done) {
+            newFeed = document.querySelector('.feed > a');
+            expect(oldFeed.href).not.toBe(newFeed.href);
+            done();
         });
     });
-
 }());
