@@ -108,7 +108,7 @@ $(function() {
 
             //create a node list of all 'a' tags within the '.feed' container
             //then expect the node list to contain at least 1 entrie
-            var feedList = document.querySelectorAll('.feed a.entry-link .entry');
+            var feedList = document.querySelectorAll('.feed .entry');
             expect(feedList.length).toBeGreaterThan(0);
             done();
         });
@@ -121,21 +121,21 @@ $(function() {
         var oldFeed;
         var newFeed;
 
-        //load first feed and set oldfeed variable
+        //Finaly got this one right, Thanks Udacity for the help.
         beforeEach(function(done) {
-            loadFeed(0);
-            oldFeed = document.querySelector('.feed > a');
-            done();
+            //load first feed and set the oldFeed variable
+            loadFeed(0, function() {
+                oldFeed = document.querySelector('.feed > a');
+                //load 2nd feed and set the newFeed variable
+                loadFeed(1, function() {
+                    newFeed = document.querySelector('.feed > a');
+                    done();
+                });
+            });
         });
 
-        //load 2nd feed
-        beforeEach(function(done) {
-            loadFeed(1, done);
-        });
-
-        //sets newfeed to the first link and compares oldfeed is not equal to newfeed
+        //sets newfeed to the curren first link and expects oldfeed is not the same as newfeed
         it('gets newFeed and ensures its not the same as oldfeed', function(done) {
-            newFeed = document.querySelector('.feed > a');
             expect(oldFeed.href).not.toBe(newFeed.href);
             done();
         });
